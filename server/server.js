@@ -5,16 +5,19 @@ const { ApolloServer }= require('apollo-server-express')
 const { typeDefs, resolvers } = require('./schemas')
 //mongoose connection
 const db = require('./config/connection');
+const { authMiddleware } = require('./utils/auth');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
 //create new Apollo server and pass in schema data
 const server = new ApolloServer({
   typeDefs,
-  resolvers
+  resolvers,
+  // jwt token verification before being sent as a header in http request (via context argument in 'me' function within Query resolver)
+  context: authMiddleware
 })
 
-//integrate Aollo server with the Express application as middleware
+//integrate Apollo server with the Express application as middleware
 server.applyMiddleware({ app })
 
 app.use(express.urlencoded({ extended: false }));

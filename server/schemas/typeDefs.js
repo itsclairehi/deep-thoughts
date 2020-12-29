@@ -1,7 +1,7 @@
 //import the gql tagged template function
 const { gql } = require('apollo-server-express');
 
-//create our typeDefs
+//creates query parameters and what typ of data it should return (if it's capitalized it's returning model data, so look for details in models folder)
 const typeDefs = gql`
     type Thought {
         _id: ID
@@ -28,13 +28,28 @@ const typeDefs = gql`
         friends: [User]
     }
 
+    type Auth {
+        token: ID!
+        user: User
+    }
+
     type Query {
+        me: User
         users: [User]
         user(username: String): User
         thoughts(username: String): [Thought]
         thought(_id: ID!): Thought
 
     }
+
+    #Note that both mutations return Auth object for JWT integration, not User object
+    type Mutation {
+        login(email: String!, password: String!): Auth
+        addUser(username: String!, email: String!, password: String!): Auth
+        addThought(thoughtText: String!): Thought
+        addReaction(thoughtId: ID!, reactionBody: String!): Thought
+        addFriend(friendId: ID!): User
+      }
 `;
 
 //export the typeDefs
