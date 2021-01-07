@@ -1,10 +1,13 @@
 import React from 'react';
 
 import ThoughtList from '../components/ThoughtList';
-
-import { useQuery } from '@apollo/react-hooks';
-import { QUERY_USER, QUERY_ME } from '../utils/queries';
+import ThoughtForm from '../components/ThoughtForm';
 import FriendList from '../components/FriendList';
+
+import { ADD_FRIEND } from '../utils/mutations';
+import { useQuery, useMutation } from '@apollo/react-hooks';
+import { QUERY_USER, QUERY_ME } from '../utils/queries';
+
 import Auth from '../utils/auth';
 import { Redirect, useParams } from 'react-router-dom';
 
@@ -12,6 +15,9 @@ import { Redirect, useParams } from 'react-router-dom';
 
 
 const Profile = () => {
+
+  //attach mutation function to variable to be used in onClick
+  const [addFriend] = useMutation(ADD_FRIEND);
 
   //useParams retrieves username from URL
   const { username: userParam } = useParams();
@@ -22,6 +28,16 @@ const Profile = () => {
   });
 
   const user = data?.me || data?.user || {};
+
+  const handleClick = async () => {
+    try {
+      await addFriend({
+        variables: { id: user._id }
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   if (!user?.username) {
     return (
@@ -35,17 +51,23 @@ const Profile = () => {
   if (Auth.loggedIn() && Auth.getProfile().data.username === userParam) {
     return <Redirect to="/profile" />;
   }
-  
+
   if (loading) {
     return <div>Loading...</div>;
   }
-
+//conditionally render addFriend button only when there are user params(i.e not viewing your own profile)
   return (
     <div>
       <div className="flex-row mb-3">
         <h2 className="bg-dark text-secondary p-3 display-inline-block">
           Viewing {userParam ? `${user.username}'s` : 'your'} profile.
         </h2>
+
+    {userParam &&(
+        <button className="btn ml-auto" onClick={handleClick}>
+          Add Friend
+        </button>
+        )}
       </div>
 
       <div className="flex-row justify-space-between mb-3">
@@ -61,6 +83,7 @@ const Profile = () => {
           />
         </div>
       </div>
+      <div className="mb-3">{!userParam && <ThoughtForm />}</div>
     </div>
   );
 };
